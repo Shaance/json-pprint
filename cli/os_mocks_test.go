@@ -6,7 +6,7 @@
 //	mockgen -source=os.go -destination=os_mocks_test.go -package=main -typed
 //
 // Package main is a generated GoMock package.
-package pprint
+package cli
 
 import (
 	os "os"
