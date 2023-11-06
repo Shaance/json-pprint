@@ -1,9 +1,8 @@
 package cli
 
-
 import (
-	"bytes"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,13 +10,73 @@ import (
 )
 
 func Test_writeOutput(t *testing.T) {
-	// t.Run("should write the buffer content to stdout when writeToFile is false", func(t *testing.T) {
-	// 	writer := &bytes.Buffer{}
-	// 	require.NoError(t, writeOutput(bytes.NewBufferString("test"), false, "./a.json", "./a.json", writer))
-	// 	require.Equal(t, "test\n", writer.String())
-	// })
+	t.Run("writes to correct file given an outputfilepath", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-	// Another test case where writing to a file is simulated could be written here
+		tmpFile, err := os.CreateTemp("", "tmp")
+		require.NoError(t, err)
+
+		tmpFileName := tmpFile.Name()
+		defer tmpFile.Close()
+		defer os.Remove(tmpFileName)
+
+		fileContent := "{'key' : 'value'}"
+		expected := fileContent + "\n"
+
+		inputFilePath := ""
+		outputFilePath := tmpFileName
+		err = writeOutput(fileContent, true, inputFilePath, tmpFileName, ActualOS{})
+		require.NoError(t, err)
+
+		actual, err := os.ReadFile(outputFilePath)
+
+		require.NoError(t, err)
+		require.Equal(t, expected, string(actual))
+	})
+
+	t.Run("writes to correct file given empty outputfilepath", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		tmpFile, err := os.CreateTemp("", "tmp")
+		require.NoError(t, err)
+
+		tmpFileName := tmpFile.Name()
+		defer tmpFile.Close()
+		defer os.Remove(tmpFileName)
+
+		fileContent := "{'key' : 'value'}"
+		expected := fileContent + "\n"
+
+		inputFilePath := tmpFileName
+		outputFilePath := ""
+		err = writeOutput(fileContent, true, inputFilePath, outputFilePath, ActualOS{})
+		require.NoError(t, err)
+
+		actual, err := os.ReadFile(inputFilePath)
+
+		require.NoError(t, err)
+		require.Equal(t, expected, string(actual))
+	})
+
+	t.Run("does not write to file if writeToFile is false", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		fileContent := "{'key' : 'value'}"
+		expected := true
+
+		inputFilePath := ""
+		outputFilePath := ""
+		writeToFile := false
+
+		err := writeOutput(fileContent, writeToFile, inputFilePath, outputFilePath, ActualOS{})
+		require.NoError(t, err)
+
+		_, err = os.ReadFile(outputFilePath)
+		require.Equal(t, expected, os.IsNotExist(err))
+	})
 }
 
 func Test_retrieveJsonInput(t *testing.T) {
@@ -82,11 +141,11 @@ func Test_indentJson(t *testing.T) {
 		expected := `{
 	"a": "b"
 }`
-		buf := &bytes.Buffer{}
 		useSpaces := false
 
-		require.NoError(t, indentJson(rawJson, useSpaces, buf))
-		require.Equal(t, expected, buf.String())
+		actual, err := indentJson(rawJson, useSpaces)
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
 	})
 
 	t.Run("should indent json using 2 spaces when useSpaces is true", func(t *testing.T) {
@@ -94,10 +153,10 @@ func Test_indentJson(t *testing.T) {
 		expected := `{
   "a": "b"
 }`
-		buf := &bytes.Buffer{}
 		useSpaces := true
 
-		require.NoError(t, indentJson(rawJson, useSpaces, buf))
-		require.Equal(t, expected, buf.String())
+		actual, err := indentJson(rawJson, useSpaces)
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
 	})
 }

@@ -59,19 +59,18 @@ func (a *App) Run() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			var prettyJSON bytes.Buffer
-
 			parsedString, err := retrieveJsonInput(cCtx.Args().First(), cCtx.String(inputFileFlagName), a.OS)
 
 			if err != nil {
 				cli.Exit(fmt.Sprintf("Error while trying to retrieve json input: %s", err), 1)
 			}
 
-			if err := indentJson(parsedString, useSpaces, &prettyJSON); err != nil {
+			prettyJson, err := indentJson(parsedString, useSpaces)
+			if err != nil {
 				cli.Exit(fmt.Sprintf("Error while trying to indent json: %s", err), 1)
 			}
 
-			return writeOutput(&prettyJSON, writeToFile, cCtx.String(inputFileFlagName), cCtx.String(outputFileFlagName), a.OS)
+			return writeOutput(prettyJson, writeToFile, cCtx.String(inputFileFlagName), cCtx.String(outputFileFlagName), a.OS)
 		},
 	}
 
@@ -80,7 +79,7 @@ func (a *App) Run() {
 	}
 }
 
-func writeOutput(prettyJSON *bytes.Buffer, writeToFile bool, inputFilePath string, outputFilePath string, OS OSInterface) error {
+func writeOutput(content string, writeToFile bool, inputFilePath string, outputFilePath string, OS OSInterface) error {
 	var writer io.Writer
 	if writeToFile {
 		if outputFilePath == "" {
@@ -97,18 +96,23 @@ func writeOutput(prettyJSON *bytes.Buffer, writeToFile bool, inputFilePath strin
 		writer = os.Stdout
 	}
 
-	fmt.Fprintln(writer, prettyJSON.String())
+	fmt.Fprintln(writer, content)
 	return nil
 }
 
-func indentJson(rawJson string, useSpaces bool, prettyJSON *bytes.Buffer) error {
+func indentJson(rawJson string, useSpaces bool) (string, error) {
 	indent := "\t" // using tab indentation by default
 	if useSpaces {
 		indent = "  "
 	}
 
 	const prefix = ""
-	return json.Indent(prettyJSON, []byte(rawJson), prefix, indent)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, []byte(rawJson), prefix, indent); err != nil {
+		return "", nil
+	}
+
+	return prettyJSON.String(), nil
 }
 
 func retrieveJsonInput(firstArg string, filePath string, _os OSInterface) (string, error) {
