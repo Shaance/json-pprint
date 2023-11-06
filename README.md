@@ -1,6 +1,11 @@
 # json-pprint
 CLI that will pretty print Json. Served as a small project to learn Golang basics.
 
+## Installing
+Make sure `$GOPATH/bin` is in your `$PATH`, otherwise just add it to your path. If `$GOPATH` is empty, you can retrieve the value like so `go env | grep GOPATH`
+
+Run `cd json-pprint && go install`, you should now be able to use the CLI, see how to use it below.
+
 ## Usage
 
 ```
