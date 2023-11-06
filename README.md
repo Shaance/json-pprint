@@ -1,5 +1,5 @@
 # json-pprint
-CLI that will pretty print Json. Wrote it as a way to learn basic Golang.
+CLI that will pretty print Json. Served as a small project to learn Golang basics.
 
 ## Usage
 
