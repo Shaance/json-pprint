@@ -62,12 +62,18 @@ func (a *App) Run() {
 			parsedString, err := retrieveJsonInput(cCtx.Args().First(), cCtx.String(inputFileFlagName), a.OS)
 
 			if err != nil {
-				cli.Exit(fmt.Sprintf("Error while trying to retrieve json input: %s", err), 1)
+				fmt.Printf("Error while trying to retrieve json input: %s", err)
+				cli.Exit(err, 1)
+			}
+
+			if (len(parsedString) == 0) {
+				cli.ShowAppHelpAndExit(cCtx, 0)
 			}
 
 			prettyJson, err := indentJson(parsedString, useSpaces)
 			if err != nil {
-				cli.Exit(fmt.Sprintf("Error while trying to indent json: %s", err), 1)
+				fmt.Printf("Error while trying to indent json: %s\n", err)
+				cli.Exit(err, 1)
 			}
 
 			return writeOutput(prettyJson, writeToFile, cCtx.String(inputFileFlagName), cCtx.String(outputFileFlagName), a.OS)
@@ -109,7 +115,7 @@ func indentJson(rawJson string, useSpaces bool) (string, error) {
 	const prefix = ""
 	var prettyJSON bytes.Buffer
 	if err := json.Indent(&prettyJSON, []byte(rawJson), prefix, indent); err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return prettyJSON.String(), nil
