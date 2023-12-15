@@ -16,10 +16,8 @@ type App struct {
 }
 
 func (a *App) Run() {
-	const inputFileFlagName = "file"
 	const outputFileFlagName = "out"
 	var useSpaces bool
-	var filePath string
 	var outFile string
 	var writeToFile bool
 
@@ -44,13 +42,6 @@ func (a *App) Run() {
 				Destination: &useSpaces,
 			},
 			&cli.StringFlag{
-				Name:        inputFileFlagName,
-				Usage:       "file to read JSON from",
-				Aliases:     []string{"f"},
-				TakesFile:   true,
-				Destination: &filePath,
-			},
-			&cli.StringFlag{
 				Name:        outputFileFlagName,
 				Aliases:     []string{"o"},
 				Usage:       "output file for result",
@@ -59,14 +50,15 @@ func (a *App) Run() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			parsedString, err := retrieveJsonInput(cCtx.Args().First(), cCtx.String(inputFileFlagName), a.OS)
+			filePath := cCtx.Args().First()
+			parsedString, err := retrieveJsonInput(filePath, a.OS)
 
 			if err != nil {
 				fmt.Printf("Error while trying to retrieve json input: %s", err)
 				cli.Exit(err, 1)
 			}
 
-			if (len(parsedString) == 0) {
+			if len(parsedString) == 0 {
 				cli.ShowAppHelpAndExit(cCtx, 0)
 			}
 
@@ -76,7 +68,7 @@ func (a *App) Run() {
 				cli.Exit(err, 1)
 			}
 
-			return writeOutput(prettyJson, writeToFile, cCtx.String(inputFileFlagName), cCtx.String(outputFileFlagName), a.OS)
+			return writeOutput(prettyJson, writeToFile, filePath, cCtx.String(outputFileFlagName), a.OS)
 		},
 	}
 
@@ -121,14 +113,7 @@ func indentJson(rawJson string, useSpaces bool) (string, error) {
 	return prettyJSON.String(), nil
 }
 
-func retrieveJsonInput(firstArg string, filePath string, _os OSInterface) (string, error) {
-	var usingArgument = filePath == ""
-
-	if usingArgument {
-		return firstArg, nil
-	}
-
-	// using file option
+func retrieveJsonInput(filePath string, _os OSInterface) (string, error) {
 	data, err := _os.ReadFile(filePath)
 	if err != nil {
 		return "", err

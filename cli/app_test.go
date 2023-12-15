@@ -80,28 +80,13 @@ func Test_writeOutput(t *testing.T) {
 }
 
 func Test_retrieveJsonInput(t *testing.T) {
-	t.Run("should return first argument when filepath is empty", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		mockedOs := NewMockOSInterface(ctrl)
-		firstArg := "{'key' : 'value'}"
-
-		expected := firstArg
-		actual, err := retrieveJsonInput(firstArg, "", mockedOs)
-
-		require.NoError(t, err)
-		require.Equal(t, actual, expected)
-	})
-
-	t.Run("should return file content when filepath is not empty", func(t *testing.T) {
+	t.Run("should return file content", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		mockedOs := NewMockOSInterface(ctrl)
 		filePath := "/tmp/something/cool.json"
 		fileContent := "{'key' : 'value'}"
-		firstArg := ""
 
 		mockedOs.
 			EXPECT().
@@ -109,7 +94,7 @@ func Test_retrieveJsonInput(t *testing.T) {
 			Return([]byte(fileContent), nil)
 
 		expected := fileContent
-		actual, err := retrieveJsonInput(firstArg, filePath, mockedOs)
+		actual, err := retrieveJsonInput(filePath, mockedOs)
 
 		require.NoError(t, err)
 		require.Equal(t, actual, expected)
@@ -121,14 +106,13 @@ func Test_retrieveJsonInput(t *testing.T) {
 
 		mockedOs := NewMockOSInterface(ctrl)
 		filePath := "/tmp/something/cool.json"
-		firstArg := ""
 
 		mockedOs.
 			EXPECT().
 			ReadFile(gomock.Eq(filePath)).
 			Return(nil, errors.New("something bad"))
 
-		actual, err := retrieveJsonInput(firstArg, filePath, mockedOs)
+		actual, err := retrieveJsonInput(filePath, mockedOs)
 
 		require.Error(t, err)
 		require.Equal(t, actual, "")
