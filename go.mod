@@ -1,6 +1,6 @@
 module github.com/Shaance/json-pprint/v2
 
-go 1.21.3
+go 1.21.5
 
 require (
 	github.com/urfave/cli/v2 v2.25.7
