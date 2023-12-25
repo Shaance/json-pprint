@@ -4,7 +4,7 @@ go 1.21.5
 
 require (
 	github.com/urfave/cli/v2 v2.26.0
-	go.uber.org/mock v0.3.0
+	go.uber.org/mock v0.4.0
 )
 
 require (
